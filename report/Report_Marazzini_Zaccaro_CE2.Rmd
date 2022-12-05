@@ -1,0 +1,78 @@
+---
+title: "Report CE2"
+author: "Marazzini, Zaccaro"
+date: "2022-12-05"
+output: html_document
+---
+
+# FINAL REPORT CE2
+
+Before scraping the Beppe Grillo's blog we inspected the robots.txt of the website to see if there were any restriction. But with our surprise, there was an error 404, meaning probably that the site needed to be debugged. So we decided to keep going with the exercise.
+
+As first thing, we opened all the necessary packages to be able to run the needed function for this exercise.
+
+```{r}
+library(tidyverse)
+library(rvest)
+library(httr)
+library(curl)
+library(here)
+library(stringr)
+install.packages("RCurl")
+library(RCurl)
+```
+
+Then we proceeded with the download of the page. To be more clean, we assigned the arguments of the function to different objects in the following way:
+
+```{r}
+url <- "https://beppegrillo.it/un-mare-di-plastica-ci-sommergera/"
+email <- "gianlucazaccaro7@gmail.com"
+user_agent <- R.Version()$version.string
+```
+
+And then we used the function getURL from the RCurl package to actually download the webpage. The Rcurl package allows people to make HTTP request and it automatically processes the results given by the web server.
+
+```{r}
+sitedwl <- RCurl::getURL(url, 
+                                 httpheader = c(From = email, `User-Agent` = user_agent))
+```
+
+This function allowed us to download the code HTML of the web page in a politely way, letting the webmaster know our identities and browser details.
+
+Later on, we saved the HTML in our local:
+
+```{r}
+download.file(url, destfile = here::here("mareplastica.html")) 
+```
+
+At this point we are able to scrape only the links that we need, thanks to the package XML. So, we downloaded and opened this package:
+
+```{r}
+install.packages("XML")
+library(XML)
+```
+
+To scrape the links we used the function getHTMLLinks:
+
+```{r}
+html_links <- XML::getHTMLLinks(here::here("mareplastica.html"))
+```
+
+This function installed a lot of links, but we were only interested in links that were connected with the blog. In order to select the links of our interest, we used the regular expression and the package stringr:
+
+```{r}
+blog_links <- (stringr::str_extract(html_links, pattern = "^https://beppegrillo.it.*"))
+```
+
+With this function we are telling R that we only want links that start (\^) with "<https://beppegrillo.it>" and that after this expression take any value (\*). By viewing the output, we saw that there were some NAs and some links that were duplicate, so we proceed to remove them:
+
+```{r}
+blog_links <- na.omit(blog_links)
+blog_links <- unique(unlist(strsplit(blog_links, " ")))
+```
+
+Once the data were clean, we created a data frame with the links we had:
+
+```{r}
+dataframe <- data.frame(blog_links)
+```
