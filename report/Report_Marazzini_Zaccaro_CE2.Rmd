@@ -64,7 +64,7 @@ This function installed a lot of links, but we were only interested in links tha
 blog_links <- (stringr::str_extract(html_links, pattern = "^https://beppegrillo.it.[^category].+[^jpg]"))
 ```
 
-With this function we are telling R that we only want links that start (\^) with "<https://beppegrillo.it>" and that after this expression take any value (\*). By viewing the output, we saw that there were some NAs and some links that were duplicate, so we proceed to remove them:
+With this function we are telling R that we only want links that start (\^) with "<https://beppegrillo.it>" and that after this expression take any value, except "category" and "jpg". By viewing the output, we saw that there were some NAs and some links that were duplicate, so we proceed to remove them:
 
 ```{r}
 blog_links <- na.omit(blog_links)
