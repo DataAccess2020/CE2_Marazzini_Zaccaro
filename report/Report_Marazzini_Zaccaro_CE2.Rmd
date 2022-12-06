@@ -27,7 +27,6 @@ library(httr)
 library(curl)
 library(here)
 library(stringr)
-install.packages("RCurl")
 library(RCurl)
 ```
 
@@ -65,7 +64,6 @@ At this point we are able to scrape only the links that we need, thanks
 to the package XML. So, we downloaded and opened this package:
 
 ```{r}
-install.packages("XML")
 library(XML)
 ```
 
@@ -176,9 +174,8 @@ be 940.
 
 **task 5**
 
-we were asked to explain what "to crawl" means What does it mean to
-crawl? What we have done for this assignment was to scrape a web page to
-collect data. Crawling, instead, means to automatically collect URL from
+we were asked to explain what "to crawl" means 
+1.What does it mean to crawl? What we have done for this assignment was to scrape a web page to collect data. Crawling, instead, means to automatically collect URL from
 a starting point. Rcrawler is a special packege for R, which enables
 these two activites at the same time. So, with this package people are
 able to crawl and scrape at the same time.
