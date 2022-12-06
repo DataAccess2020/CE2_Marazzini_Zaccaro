@@ -58,10 +58,10 @@ To scrape the links we used the function getHTMLLinks:
 html_links <- XML::getHTMLLinks(here::here("mareplastica.html"))
 ```
 
-This function installed a lot of links, but we were only interested in links that were connected with the blog. In order to select the links of our interest, we used the regular expression and the package stringr:
+This function installed a lot of links, but we were only interested in links that were connected with the posts. In order to select the links of our interest, we used the regular expression and the package stringr:
 
 ```{r}
-blog_links <- (stringr::str_extract(html_links, pattern = "^https://beppegrillo.it.*"))
+blog_links <- (stringr::str_extract(html_links, pattern = "^https://beppegrillo.it.[^category].+[^jpg]"))
 ```
 
 With this function we are telling R that we only want links that start (\^) with "<https://beppegrillo.it>" and that after this expression take any value (\*). By viewing the output, we saw that there were some NAs and some links that were duplicate, so we proceed to remove them:

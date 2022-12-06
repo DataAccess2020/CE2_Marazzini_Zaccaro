@@ -16,7 +16,7 @@ url <- "https://beppegrillo.it/un-mare-di-plastica-ci-sommergera/"
 email <- "gianlucazaccaro7@gmail.com"
 user_agent <- R.Version()$version.string
 sitedwl <- RCurl::getURL(url, 
-                                 httpheader = c(From = email, `User-Agent` = user_agent))
+                  httpheader = c(From = email, `User-Agent` = user_agent))
 
 
 
