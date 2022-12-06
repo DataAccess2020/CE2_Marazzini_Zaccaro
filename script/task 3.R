@@ -21,3 +21,4 @@ blog_links <- unique(unlist(strsplit(blog_links, " ")))
 #now we create the data frame
 dataframe <- data.frame(blog_links)
 dataframe
+
