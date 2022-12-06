@@ -3,13 +3,22 @@ title: "Report CE2"
 author: "Marazzini, Zaccaro"
 date: "2022-12-05"
 output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 # FINAL REPORT CE2
 
-Before scraping the Beppe Grillo's blog we inspected the robots.txt of the website to see if there were any restriction. But with our surprise, there was an error 404, meaning probably that the site needed to be debugged. So we decided to keep going with the exercise.
+**task 1,2,3**
 
-As first thing, we opened all the necessary packages to be able to run the needed function for this exercise.
+Before scraping the Beppe Grillo's blog we inspected the robots.txt of
+the website to see if there were any restriction. But with our surprise,
+there was an error 404, meaning probably that the site needed to be
+debugged. So we decided to keep going with the exercise.
+
+As first thing, we opened all the necessary packages to be able to run
+the needed function for this exercise.
 
 ```{r}
 library(tidyverse)
@@ -22,7 +31,9 @@ install.packages("RCurl")
 library(RCurl)
 ```
 
-Then we proceeded with the download of the page. To be more clean, we assigned the arguments of the function to different objects in the following way:
+Then we proceeded with the download of the page. To be more clean, we
+assigned the arguments of the function to different objects in the
+following way:
 
 ```{r}
 url <- "https://beppegrillo.it/un-mare-di-plastica-ci-sommergera/"
@@ -30,14 +41,19 @@ email <- "gianlucazaccaro7@gmail.com"
 user_agent <- R.Version()$version.string
 ```
 
-And then we used the function getURL from the RCurl package to actually download the webpage. The Rcurl package allows people to make HTTP request and it automatically processes the results given by the web server.
+And then we used the function getURL from the RCurl package to actually
+download the webpage. The Rcurl package allows people to make HTTP
+request and it automatically processes the results given by the web
+server.
 
 ```{r}
 sitedwl <- RCurl::getURL(url, 
                                  httpheader = c(From = email, `User-Agent` = user_agent))
 ```
 
-This function allowed us to download the code HTML of the web page in a politely way, letting the webmaster know our identities and browser details.
+This function allowed us to download the code HTML of the web page in a
+politely way, letting the webmaster know our identities and browser
+details.
 
 Later on, we saved the HTML in our local:
 
@@ -45,7 +61,8 @@ Later on, we saved the HTML in our local:
 download.file(url, destfile = here::here("mareplastica.html")) 
 ```
 
-At this point we are able to scrape only the links that we need, thanks to the package XML. So, we downloaded and opened this package:
+At this point we are able to scrape only the links that we need, thanks
+to the package XML. So, we downloaded and opened this package:
 
 ```{r}
 install.packages("XML")
@@ -58,13 +75,19 @@ To scrape the links we used the function getHTMLLinks:
 html_links <- XML::getHTMLLinks(here::here("mareplastica.html"))
 ```
 
-This function installed a lot of links, but we were only interested in links that were connected with the posts. In order to select the links of our interest, we used the regular expression and the package stringr:
+This function installed a lot of links, but we were only interested in
+links that were connected with the posts. In order to select the links
+of our interest, we used the regular expression and the package stringr:
 
 ```{r}
 blog_links <- (stringr::str_extract(html_links, pattern = "^https://beppegrillo.it.[^category].+[^jpg]"))
 ```
 
-With this function we are telling R that we only want links that start (\^) with "<https://beppegrillo.it>" and that after this expression take any value, except "category" and "jpg". By viewing the output, we saw that there were some NAs and some links that were duplicate, so we proceed to remove them:
+With this function we are telling R that we only want links that start
+(\^) with "<https://beppegrillo.it>" and that after this expression take
+any value, except "category" and "jpg". By viewing the output, we saw
+that there were some NAs and some links that were duplicate, so we
+proceed to remove them:
 
 ```{r}
 blog_links <- na.omit(blog_links)
@@ -76,3 +99,112 @@ Once the data were clean, we created a data frame with the links we had:
 ```{r}
 dataframe <- data.frame(blog_links)
 ```
+
+**task 4**
+
+we were asked to scrape 47 pages that contain all the posts grillo
+blogged in 2016. First, we took the link of the 47 pages ang put them
+into a string character
+
+```{r}
+url2 <- str_c("https://beppegrillo.it/category/archivio/2016/page/", 1:47)
+url2
+```
+
+Then we were asked to download each page that contains a post, so all
+the 47. We created a function to politely download.
+
+```{r}
+download_politely <- function(from_url, to_html, my_email, my_agent = R.Version()$version.string)
+{
+  
+  require(httr)
+  
+  #ensuring that we get only characters
+  stopifnot(is.character(from_url))
+  stopifnot(is.character(to_html))
+  stopifnot(is.character(my_email))
+  
+  # GET politely function
+  grillolinks <- httr::GET(url = from_url, 
+                         add_headers(
+                           From = my_email, 
+                           `User-Agent` = R.Version()$version.string
+                         )
+  )
+  if (httr::http_status(grillolinks)$message == "Success: (200) OK") {
+    bin <- content(grillolinks, as = "raw")
+    writeBin(object = bin, con = to_html)
+  } else {
+    cat("mayday")
+  }
+}
+```
+
+Once created the function, we created a directory in which to put all
+the links.
+
+```{r}
+dir.create("grillolinks2")
+
+for (i in seq_along(url2)) {
+  cat(i, " ")
+  download_politely(from_url = url2[i], 
+                    to_html = here::here("grillolinks2", str_c("page_",i,".html")), 
+                    my_email = email)
+  
+  Sys.sleep(0.5)  # We use a sys.sleep of 0.5 seconds to download politely
+}
+```
+
+Then we were asked to scrape each of these pages. In particular to
+select all the main titles, which should be 470( 47 x 10)
+
+```{r}
+for (i in seq_along(url2)){
+  vector <- read_html(here::here("grillolinks2", str_c("page_",i,".html"))) %>%
+    html_elements(css = ".td_module_10 a") %>%  #SelectorGadget selects only the titles
+    html_text(trim = F)
+  text <- append(text, vector)
+  text <- unique(unlist(text))
+}
+text
+```
+
+To avoid empty brackets we do the unique function, otherwise they would
+be 940.
+
+**task 5**
+
+we were asked to explain what "to crawl" means What does it mean to
+crawl? What we have done for this assignment was to scrape a web page to
+collect data. Crawling, instead, means to automatically collect URL from
+a starting point. Rcrawler is a special packege for R, which enables
+these two activites at the same time. So, with this package people are
+able to crawl and scrape at the same time.
+
+2.  What is a web spider? A web spider is a bot of a search engine that
+    anayzes the web and creates a map of the websites following the
+    hyperlinks. In fact, they are called spiders because this process
+    recalls the spider that creates its net.
+
+3.  How is this different from a scraper you have built at point 5? It
+    was different because we scraped a single page, which was of our
+    interest. Instead, the crawling is an always-on process on the web
+    and it doesn't take into consideration a specific page, but all the
+    pages linked with one another through the hyperlinks.
+
+4.Inspect the package documentation and sketch how you could build a
+spider scraper: which function(s) should you use? With which arguments?
+Rclawer can crawl the whole webpage and scrape the content in an
+automatically way. You just need to provide the website URL and the CSS
+Some functions are: Rcrawler(Website, no_cores, no_conn, MaxDepth, DIR,
+RequestsDelay = 0, Obeyrobots = FALSE, Useragent, use_proxy = NULL,
+Encod, Timeout = 5, URLlenlimit = 255, urlExtfilter, dataUrlfilter,
+crawlUrlfilter, crawlZoneCSSPat = NULL, crawlZoneXPath = NULL,
+ignoreUrlParams, ignoreAllUrlParams = FALSE, KeywordsFilter,
+KeywordsAccuracy, FUNPageFilter, ExtractXpathPat, ExtractCSSPat,
+PatternsNames, ExcludeXpathPat, ExcludeCSSPat, ExtractAsText = TRUE,
+ManyPerPattern = FALSE, saveOnDisk = TRUE, NetworkData = FALSE,
+NetwExtLinks = FALSE, statslinks = FALSE, Vbrowser = FALSE,
+LoggedSession)
