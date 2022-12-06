@@ -11,6 +11,7 @@ library(here)
 library(stringr)
 install.packages("RCurl")
 library(RCurl)
+
 #now we download the page
 url <- "https://beppegrillo.it/un-mare-di-plastica-ci-sommergera/"
 email <- "gianlucazaccaro7@gmail.com"
